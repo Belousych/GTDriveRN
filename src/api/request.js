@@ -10,8 +10,8 @@ export async function getRequest(url, params = {}, isDev = false) {
       return res.data;
     })
     .catch(error => {
-      console.error(error.toJSON());
-      return error.toJSON();
+      // console.error(error.toJSON());
+      // return error.toJSON();
     });
 }
 
@@ -57,7 +57,7 @@ export async function getRequestJwt(url) {
     .then(res => res.data)
     .catch(error => {
       console.error(error.toJSON());
-      return error.toJSON();
+      // return error.toJSON();
     });
 }
 
