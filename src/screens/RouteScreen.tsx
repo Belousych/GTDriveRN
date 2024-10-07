@@ -42,14 +42,16 @@ import {LocationContext} from '../store/location/LocationProvider';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../utils/FunctionQueue.js';
 import {useCachedSWR} from '../hook/useCachedSWR';
+import { useFunctionQueue } from '../store/FunctionQueueContext';
 
 const {Navigator, Screen} = createBottomTabNavigator();
 
 type Props = {};
 
-const queue = new FunctionQueue();
+
 
 const RouteScreen = (props: Props) => {
+  const queue = useFunctionQueue();
   // const { cache } = useSWRConfig();
   // const getCachedData = key => {
   //   return cache.get(key); // Получаем кэшированные данные по ключу

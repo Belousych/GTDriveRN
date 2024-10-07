@@ -5,13 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const getPersistedCache = async key => {
   try {
     const cachedData = await AsyncStorage.getItem(key);
-
-    console.log('getPersistedCache', {
-      cachedData,
-    });
     return cachedData ? JSON.parse(cachedData) : null;
   } catch (error) {
-    console.error('Failed to retrieve cache', error);
+    console.error('Не удалось получить кэш', error);
     return null;
   }
 };
@@ -19,8 +15,9 @@ const getPersistedCache = async key => {
 const persistCache = async (key, data) => {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(data));
+    console.log('Удалось сохранить кэш', data);
   } catch (error) {
-    console.error('Failed to persist cache', error);
+    console.error('Не удалось сохранить кэш', error);
   }
 };
 
@@ -29,13 +26,13 @@ export const useCachedSWR = (key, fetcher, options = {}) => {
   const [cachedData, setCachedData] = useState(null);
   const [isCacheReady, setCacheReady] = useState(false);
 
-  // Получаем кэшированные данные при монтировании
+  // Загрузка кэшированных данных при монтировании
   useEffect(() => {
     const loadCache = async () => {
-      let data = cache.get(key);
-      if (!data) {
-        data = await getPersistedCache(key);
-      }
+    //   let data = cache.get(key);
+    //   if (!data) {
+        let data = await getPersistedCache(key);
+    //   }
       setCachedData(data); // Устанавливаем кэшированные данные в состояние
       setCacheReady(true); // Указываем, что кэш готов
     };
@@ -44,26 +41,27 @@ export const useCachedSWR = (key, fetcher, options = {}) => {
   }, [key, cache]);
 
   const swr = useSWR(
-    isCacheReady ? key : null, // useSWR начнет работу только когда кэш будет готов
+    isCacheReady ? key : null, // SWR начинает работу, когда кэш готов
     fetcher,
     {
-      fallbackData: cachedData, // Передаем кэшированные данные как fallbackData
-      revalidateOnFocus: false, // Можно отключить повторный запрос при фокусе
+      fallbackData: cachedData, // Используем кэшированные данные как запасные
+      revalidateOnFocus: false,
       ...options,
     },
   );
 
-  // Проверка на наличие ошибки
+  // Мутируем кэшированные данные при ошибке
   useEffect(() => {
     if (swr.error && cachedData) {
-      swr.mutate(cachedData, false); // Возвращаем кэшированные данные при ошибке
+      console.log('Мутируем кэшированные данные при ошибке:', cachedData);
+      swr.mutate(cachedData, false); // Мутируем только кэшированные данные
     }
-  }, [swr.error, cachedData]);
+  }, [swr, cachedData]);
 
-  // Сохраняем новые данные в кэш при их обновлении
+  // Сохраняем только поле `data`, когда получаем новые данные
   useEffect(() => {
     if (swr.data) {
-      persistCache(key, swr.data);
+      persistCache(key, swr.data); // Кэшируем только данные
     }
   }, [swr.data]);
 

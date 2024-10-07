@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import 'react-native-gesture-handler';
 
 import {IconRegistry} from '@ui-kitten/components';
@@ -11,8 +11,21 @@ import NetInfo from '@react-native-community/netinfo';
 
 import {AppState} from 'react-native';
 import {SWRConfig} from 'swr';
+import {FunctionQueueProvider} from './src/store/FunctionQueueContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function App(): JSX.Element {
+  useEffect(() => {
+    const init = async () => {
+      const storageVer = await AsyncStorage.getItem('version');
+      if (storageVer !== 'v1') {
+        await AsyncStorage.clear();
+        await AsyncStorage.setItem('version', 'v1');
+      }
+    };
+    init();
+  }, []);
+
   return (
     <SWRConfig
       value={{
@@ -59,7 +72,9 @@ function App(): JSX.Element {
       <CombinedContextProviders>
         <GeoBackgroundg />
         <IconRegistry icons={EvaIconsPack} />
-        <MainNavigation />
+        <FunctionQueueProvider>
+          <MainNavigation />
+        </FunctionQueueProvider>
       </CombinedContextProviders>
     </SWRConfig>
   );

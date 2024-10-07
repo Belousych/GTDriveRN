@@ -15,13 +15,21 @@ export async function getRequest(url, params = {}, isDev = false) {
     });
 }
 
-
 export async function getReq(url, params = {}, isDev = false) {
-  const req = !isDev
-    ? axiosInstance.get(url, {params})
-    : axiosInstanceDev.get(url, {params});
+  try {
+    const req = !isDev
+      ? axiosInstance.get(url, {params})
+      : axiosInstanceDev.get(url, {params});
 
-  return req
+    console.log('API Response:', req);
+    return req;
+  } catch (error) {
+    // Log any error that occurs during the request
+    console.error('API request failed:', error);
+
+    // You might want to throw the error again to handle it in the caller function
+    throw error;
+  }
 }
 
 export async function postRequest(url, payload = {}) {

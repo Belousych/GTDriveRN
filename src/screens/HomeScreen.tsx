@@ -29,6 +29,9 @@ const HomeScreen = props => {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = React.useState(false);
 
+
+  console.log({ routes })
+
   // if (error && !routes) {
   //   mutate(
   //     `/routes?user=${currentUser}`,

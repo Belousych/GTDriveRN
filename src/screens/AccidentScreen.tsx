@@ -7,10 +7,12 @@ import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../utils/FunctionQueue.js';
 import { View } from 'react-native';
 import { styles } from '../styles';
+import { useFunctionQueue } from '../store/FunctionQueueContext.js';
 
-const queue = new FunctionQueue();
+
 
 const AccidentScreen = ({ visibleAccident, onClose, uidPoint, uid }) => {
+  const queue = useFunctionQueue();
   const [text, setText] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pending, setPending] = useState(false);

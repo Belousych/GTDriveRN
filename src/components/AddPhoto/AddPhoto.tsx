@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Card, Icon, Layout, Spinner } from '@ui-kitten/components';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import React, {useState, useEffect, useCallback} from 'react';
+import {Button, Card, Icon, Layout, Spinner} from '@ui-kitten/components';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ImageBackground, View } from 'react-native';
-import { acceptImages } from '../../api/photo';
-import { getDataPostRoute } from '../functions.js';
+import {ImageBackground, View} from 'react-native';
+import {acceptImages} from '../../api/photo';
+import {getDataPostRoute} from '../functions.js';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../../utils/FunctionQueue';
+import {useFunctionQueue} from '../../store/FunctionQueueContext';
 
-const queue = new FunctionQueue();
-
-const AddPhoto = (props) => {
+const AddPhoto = props => {
+  const queue = useFunctionQueue();
   const [images, setImages] = useState([]);
   const [pending, setPending] = useState(false);
   const params = props?.route?.params;
@@ -18,8 +18,8 @@ const AddPhoto = (props) => {
   const uidOrder = params?.uidOrder;
   const uidPoint = params?.uidPoint;
   const uidPointOrder = uidOrder ? uidOrder : uidPoint;
- 
-  const updateDate = async (data: any, callback = () => { }) => {
+
+  const updateDate = async (data: any, callback = () => {}) => {
     const netInfo = await NetInfo.fetch();
 
     const callbackFunc = async () => {
@@ -43,7 +43,9 @@ const AddPhoto = (props) => {
 
   const getSavedPhotos = async () => {
     try {
-      const savedPhotos = await AsyncStorage.getItem('savedPhotos_' + uidPointOrder);
+      const savedPhotos = await AsyncStorage.getItem(
+        'savedPhotos_' + uidPointOrder,
+      );
 
       savedPhotos && setImages(JSON.parse(savedPhotos));
     } catch (error) {
@@ -51,26 +53,32 @@ const AddPhoto = (props) => {
     }
   };
 
-  const savePhotos = async (photosToSave) => {
+  const savePhotos = async photosToSave => {
     try {
-      await AsyncStorage.setItem('savedPhotos_' + uidPointOrder, JSON.stringify(photosToSave));
+      await AsyncStorage.setItem(
+        'savedPhotos_' + uidPointOrder,
+        JSON.stringify(photosToSave),
+      );
     } catch (error) {
       console.error('Error saving photos:', error);
     }
   };
 
-  const onImagePress = (response) => {
+  const onImagePress = response => {
     if (!response.didCancel) {
-      const newImages = [...images, { ...response, uploaded: false }];
+      const newImages = [...images, {...response, uploaded: false}];
 
       setImages(newImages);
       savePhotos(newImages);
     }
   };
 
-  const launchImagePicker = useCallback((options) => {
-    launchImageLibrary(options, onImagePress);
-  }, [images]);
+  const launchImagePicker = useCallback(
+    options => {
+      launchImageLibrary(options, onImagePress);
+    },
+    [images],
+  );
 
   const launchCameraPicker = useCallback(() => {
     const options = {
@@ -85,7 +93,7 @@ const AddPhoto = (props) => {
     launchCamera(options, onImagePress);
   }, [images]);
 
-  const removeNewImage = (index) => {
+  const removeNewImage = index => {
     const updatedImages = [...images];
     updatedImages.splice(index, 1);
     setImages(updatedImages);
@@ -99,7 +107,7 @@ const AddPhoto = (props) => {
     data.uid = uid;
     data.uidPoint = uidPoint;
 
-    if (uidOrder !== "Undefined") {
+    if (uidOrder !== 'Undefined') {
       data.uidOrder = uidOrder;
     }
 
@@ -116,7 +124,7 @@ const AddPhoto = (props) => {
     // Пометить отправленные фотографии как загруженные
     const updatedImages = images.map(image => {
       if (newImages.includes(image)) {
-        return { ...image, uploaded: true };
+        return {...image, uploaded: true};
       }
       return image;
     });
@@ -146,26 +154,33 @@ const AddPhoto = (props) => {
 
   const renderCardHeader = () => {
     canAddPhoto = params.status !== 3;
-    
+
     return (
       canAddPhoto && (
         <Layout style={styles.headerLayout}>
           <Button
             accessoryLeft={ImageIcon}
-            onPress={() => launchImagePicker({ selectionLimit: 1, mediaType: 'photo', includeBase64: true })}
-            status='primary'
-            style={{ flex: 1, margin: 4 }}>
+            onPress={() =>
+              launchImagePicker({
+                selectionLimit: 1,
+                mediaType: 'photo',
+                includeBase64: true,
+              })
+            }
+            status="primary"
+            style={{flex: 1, margin: 4}}>
             Галерея
           </Button>
           <Button
             accessoryLeft={CameraIcon}
             onPress={launchCameraPicker}
-            status='success' style={{ flex: 1, margin: 4 }}>
+            status="success"
+            style={{flex: 1, margin: 4}}>
             Камера
           </Button>
         </Layout>
       )
-    )
+    );
   };
 
   const renderCardFooter = () => {
@@ -173,9 +188,7 @@ const AddPhoto = (props) => {
 
     return hasUnuploadedPhotos ? (
       <Layout style={styles.footerLayout}>
-        <Button
-          accessoryLeft={SyncIcon}
-          onPress={onSubmitPhoto}>
+        <Button accessoryLeft={SyncIcon} onPress={onSubmitPhoto}>
           Отправить фото
         </Button>
       </Layout>
@@ -186,25 +199,28 @@ const AddPhoto = (props) => {
     <Layout>
       {pending && (
         <View style={styles.spinnerContainer}>
-          <Spinner size='giant'/>
+          <Spinner size="giant" />
         </View>
       )}
       <Card
         style={styles.cardLayout}
         header={renderCardHeader}
-        footer={renderCardFooter}
-      >
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        footer={renderCardFooter}>
+        <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
           {images.map((image, index) => (
-            <View
-              style={styles.imageContainer}
-              key={index}
-            >
+            <View style={styles.imageContainer} key={index}>
               <ImageBackground
                 style={styles.imageBackground}
-                source={{ uri: image.assets[0].uri }} />
+                source={{uri: image.assets[0].uri}}
+              />
 
-              {!image.uploaded && <Button accessoryLeft={TrashIcon} onPress={() => removeNewImage(index)}>Удалить</Button>}
+              {!image.uploaded && (
+                <Button
+                  accessoryLeft={TrashIcon}
+                  onPress={() => removeNewImage(index)}>
+                  Удалить
+                </Button>
+              )}
             </View>
           ))}
         </View>
@@ -235,7 +251,7 @@ const styles = {
   },
   footerLayout: {
     bottom: 0,
-    margin: 5
+    margin: 5,
   },
   spinnerContainer: {
     position: 'absolute',
@@ -247,8 +263,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  }
+  },
 };
-
 
 export default AddPhoto;

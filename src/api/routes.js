@@ -7,7 +7,7 @@ export async function uploadLocation(params) {
 }
 
 export async function getRoutes(userId) {
-  return getReq(`/routes?user=${userId}`).then(res => res.data);
+  return await getReq(`/routes?user=${userId}`).then(res => res.data);
 }
 
 
