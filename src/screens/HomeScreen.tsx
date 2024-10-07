@@ -11,12 +11,10 @@ import useSWR, { useSWRConfig } from 'swr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import BackgroundGeolocation from 'react-native-background-geolocation';
+import { useCachedSWR } from '../hook/useCachedSWR';
 
 const HomeScreen = props => {
-  const { cache } = useSWRConfig();
-  const getCachedData = key => {
-    return cache.get(key); // Получаем кэшированные данные по ключу
-  };
+  
 
   const [startGeo, setStartGeo] = useState(false);
   const [renderComplete, setRenderComplete] = useState(false);
@@ -26,20 +24,18 @@ const HomeScreen = props => {
     data: routes,
     mutate,
     error,
-  } = useSWR(`/routes?user=${currentUser}`, () => getRoutes(currentUser), {
-    fallbackData: getCachedData(`/routes?user=${currentUser}`),
-  });
+  } = useCachedSWR(`/routes?user=${currentUser}`, () => getRoutes(currentUser));
   const [startRoute, setStartRoute] = useState(null);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = React.useState(false);
 
-  if (error && !routes) {
-    mutate(
-      `/routes?user=${currentUser}`,
-      getCachedData(`/routes?user=${currentUser}`),
-      false,
-    ); // Возвращаем кэшированные данные
-  }
+  // if (error && !routes) {
+  //   mutate(
+  //     `/routes?user=${currentUser}`,
+  //     getCachedData(`/routes?user=${currentUser}`),
+  //     false,
+  //   ); // Возвращаем кэшированные данные
+  // }
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);

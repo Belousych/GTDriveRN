@@ -2,7 +2,7 @@
 
 /* eslint-disable react/no-unstable-nested-components */
 import map_scripts from '../map_scripts';
-import useSWR, { useSWRConfig } from 'swr';
+import useSWR, {useSWRConfig} from 'swr';
 import {
   Layout,
   List,
@@ -14,45 +14,50 @@ import {
   BottomNavigationTab,
   Spinner,
 } from '@ui-kitten/components';
-import React, { useEffect, useContext, useRef, useCallback, useState } from 'react';
-import { View, Alert, RefreshControl, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { postRoute, getOSRM } from '../api/routes';
-import { RouterListItem } from '../types';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import { WebView } from 'react-native-webview';
-import { GlobalState } from '../store/global/global.state';
+import React, {
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+  useState,
+} from 'react';
+import {View, Alert, RefreshControl, ActivityIndicator} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {postRoute, getOSRM} from '../api/routes';
+import {RouterListItem} from '../types';
+import {NavigationContainer, useNavigation} from '@react-navigation/native';
+import {WebView} from 'react-native-webview';
+import {GlobalState} from '../store/global/global.state';
 import {
   getCardStatus,
   getDataPostRoute,
   addGeofenceToNextPoint,
 } from '../components/functions.js';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { styles } from '../styles';
-import { UserContext } from '../store/user/UserProvider';
-import { getReq, getRequest } from '../api/request';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {styles} from '../styles';
+import {UserContext} from '../store/user/UserProvider';
+import {getReq, getRequest} from '../api/request';
 import BackgroundGeolocation from 'react-native-background-geolocation';
-import { LocationContext } from '../store/location/LocationProvider';
+import {LocationContext} from '../store/location/LocationProvider';
 import NetInfo from '@react-native-community/netinfo';
 import FunctionQueue from '../utils/FunctionQueue.js';
+import {useCachedSWR} from '../hook/useCachedSWR';
 
-const { Navigator, Screen } = createBottomTabNavigator();
+const {Navigator, Screen} = createBottomTabNavigator();
 
 type Props = {};
-
 
 const queue = new FunctionQueue();
 
 const RouteScreen = (props: Props) => {
-  
-  const { cache } = useSWRConfig();
-  const getCachedData = key => {
-    return cache.get(key); // Получаем кэшированные данные по ключу
-  };
+  // const { cache } = useSWRConfig();
+  // const getCachedData = key => {
+  //   return cache.get(key); // Получаем кэшированные данные по ключу
+  // };
 
   const [pending, setPending] = useState(false);
   const context = useContext(GlobalState);
-  const { currentRoute, setRoute } = useContext(UserContext);
+  const {currentRoute, setRoute} = useContext(UserContext);
 
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = React.useState(false);
@@ -89,32 +94,28 @@ const RouteScreen = (props: Props) => {
     isLoading,
     mutate,
     error,
-  } = useSWR(`/route/${uid}`, () => getReq(`/route/${uid}`).then(res => res.data), {
-    fallbackData: getCachedData(`/route/${uid}`),
-  });
-  if (error && (!route || !route?.points)) {
-    mutate(
-      `/route/${uid}`,
-      getCachedData(`/route/${uid}`),
-      false,
-    ); // Возвращаем кэшированные данные
-  }
+  } = useCachedSWR(`/route/${uid}`, () =>
+    getReq(`/route/${uid}`).then(res => res.data),
+  );
+  // if (error && (!route || !route?.points)) {
+  //   mutate(`/route/${uid}`, getCachedData(`/route/${uid}`), false); // Возвращаем кэшированные данные
+  // }
 
   const updateDate = async (data: any, callback = () => {}) => {
     // Проверяем состояние сети
     const netInfo = await NetInfo.fetch();
 
     mutate((currentData: any) => {
-        const updatedData = { ...currentData };
+      const updatedData = {...currentData};
 
-        // Устанавливаем статус и проверку
-        updatedData.status = data.finish ? 3 : 2;
-        updatedData.check = !data.finish;
+      // Устанавливаем статус и проверку
+      updatedData.status = data.finish ? 3 : 2;
+      updatedData.check = !data.finish;
 
-        console.log('updatedDataRoute', JSON.stringify(updatedData));
-        console.log('data', JSON.stringify(data));
+      console.log('updatedDataRoute', JSON.stringify(updatedData));
+      console.log('data', JSON.stringify(data));
 
-        return updatedData;
+      return updatedData;
     }, false);
 
     const callbackFunc = async () => {
@@ -130,7 +131,7 @@ const RouteScreen = (props: Props) => {
     }
 
     setPending(false); // Устанавливаем pending в false
-};
+  };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -259,7 +260,7 @@ const RouteScreen = (props: Props) => {
             name="swap"
             width={23}
             height={23}
-            style={{ marginRight: 5 }}
+            style={{marginRight: 5}}
             onPress={() => {
               Alert.alert('Требуется возврат на склад!');
             }}></Icon>
@@ -272,7 +273,7 @@ const RouteScreen = (props: Props) => {
             name="arrow-forward"
             width={23}
             height={23}
-            style={{ marginRight: 5 }}
+            style={{marginRight: 5}}
             onPress={() => {
               Alert.alert('Возврат на склад не требуется!');
             }}></Icon>
@@ -325,8 +326,8 @@ const RouteScreen = (props: Props) => {
         <Card
           style={[
             styles.containerCards,
-            (isCurrentPoint && { borderWidth: 1, borderColor: '#0092FF' }) ||
-            (finishedPoint && { borderWidth: 1, borderColor: '#91F2D2' }),
+            (isCurrentPoint && {borderWidth: 1, borderColor: '#0092FF'}) ||
+              (finishedPoint && {borderWidth: 1, borderColor: '#91F2D2'}),
           ]}
           status={getCardStatus(item.status)}
           header={() => renderCardPointName(item)}
@@ -341,7 +342,7 @@ const RouteScreen = (props: Props) => {
     if (!routeItem.check) {
       Alert.alert('Необходимо принять маршрут');
     } else {
-      props.navigation.navigate('TaskScreen', { ...item, ...points });
+      props.navigation.navigate('TaskScreen', {...item, ...points});
     }
   };
 
@@ -442,7 +443,7 @@ const RouteScreen = (props: Props) => {
       nameIcon = 'download-outline';
     }
 
-    return <Icon name={nameIcon} width={23} height={23} style={{ margin: 10 }} />;
+    return <Icon name={nameIcon} width={23} height={23} style={{margin: 10}} />;
   };
 
   // ---------- Таб Точки ----------
@@ -470,8 +471,8 @@ const RouteScreen = (props: Props) => {
 
   // ---------- Таб Карты ----------
 
-  const MapOSRMScreen = ({ points }) => {
-    const { location } = useContext(LocationContext);
+  const MapOSRMScreen = ({points}) => {
+    const {location} = useContext(LocationContext);
 
     const Map_Ref = useRef(null);
     const lat = location?.coords?.latitude;
@@ -560,7 +561,7 @@ const RouteScreen = (props: Props) => {
     return (
       <WebView
         ref={Map_Ref}
-        source={{ html: map_scripts }}
+        source={{html: map_scripts}}
         style={styles.Webview}
         onLoad={() => jsMapInit(lat, lon)}
       />
@@ -572,7 +573,7 @@ const RouteScreen = (props: Props) => {
   const getThisRoute = async () => {
     setPending(true);
     setRoute(uid);
-    
+
     await new Promise(resolve => setTimeout(resolve, 0));
 
     context.enableGeo();
@@ -591,7 +592,7 @@ const RouteScreen = (props: Props) => {
       mutate();
     });
 
-    if(route.lite) {
+    if (route.lite) {
       for (const point of points) {
         await addGeofenceToNextPoint(point);
       }
@@ -636,9 +637,8 @@ const RouteScreen = (props: Props) => {
       <Screen
         name="Точки"
         component={PointsScreen}
-        options={{ headerShown: false }}
+        options={{headerShown: false}}
       />
-
     </Navigator>
   );
 
@@ -649,7 +649,7 @@ const RouteScreen = (props: Props) => {
       />
       */
 
-  const BottomTabBar = ({ navigation, state }) => (
+  const BottomTabBar = ({navigation, state}) => (
     <SafeAreaView>
       <BottomNavigation
         selectedIndex={state.index}
